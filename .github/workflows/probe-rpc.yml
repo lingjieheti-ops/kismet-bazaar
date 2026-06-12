@@ -1,0 +1,33 @@
+name: probe-rpc
+
+# Throwaway diagnostic: which Casper testnet RPC can a GitHub runner actually
+# reach? No compile, just curl. Run by hand; read the logs.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe candidate endpoints
+        run: |
+          probe() {
+            echo "===== $1"
+            curl -sS -m 12 -X POST "$1" \
+              -H 'Content-Type: application/json' \
+              -d '{"jsonrpc":"2.0","id":1,"method":"info_get_status"}' \
+              | head -c 400 \
+              && echo "" \
+              || echo "  -> UNREACHABLE"
+            echo ""
+          }
+          probe "https://node.testnet.casper.network/rpc"
+          probe "https://node.testnet.cspr.cloud/rpc"
+          probe "https://rpc.testnet.cspr.cloud/rpc"
+          probe "https://casper-testnet-rpc.allthatnode.com/rpc"
+          probe "https://node-testnet.casper.validation.cloud/rpc"
+          echo "===== DNS resolution check"
+          for h in node.testnet.casper.network node.testnet.cspr.cloud rpc.testnet.casperlabs.io; do
+            echo -n "$h -> "; getent hosts "$h" || echo "NXDOMAIN"
+          done
