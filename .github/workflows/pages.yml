@@ -1,0 +1,49 @@
+name: pages
+
+# Publishes the trading floor to GitHub Pages on every change that affects
+# what the public sees: the web app itself, or fresh keeper state.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "keeper-state/snapshot.json"
+      - "deployments/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Build
+        working-directory: web
+        env:
+          NEXT_PUBLIC_BASE_PATH: /kismet-bazaar
+        run: |
+          npm ci
+          npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/out
+      - uses: actions/deploy-pages@v4
+        id: deployment
