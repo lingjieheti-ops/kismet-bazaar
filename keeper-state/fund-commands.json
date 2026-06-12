@@ -1,0 +1,9 @@
+{
+  "commands": [
+    { "actor": 0, "op": "transfer", "to_actor": 1, "amount_motes": "400000000000" },
+    { "actor": 0, "op": "transfer", "to_actor": 2, "amount_motes": "250000000000" },
+    { "actor": 0, "op": "transfer", "to_actor": 3, "amount_motes": "400000000000" },
+    { "actor": 0, "op": "transfer", "to_actor": 4, "amount_motes": "300000000000" },
+    { "actor": 0, "op": "transfer", "to_actor": 5, "amount_motes": "250000000000" }
+  ]
+}

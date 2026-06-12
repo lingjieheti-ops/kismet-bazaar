@@ -28,8 +28,11 @@ foreach ($k in $names) {
     openssl genpkey -algorithm ed25519 -out $pem | Out-Null
   }
   # Casper public key = 0x01 prefix + raw 32-byte ed25519 public key.
-  $der = openssl pkey -in $pem -pubout -outform DER | ForEach-Object { $_ }
-  $bytes = [byte[]]$der
+  # DER goes to a file: PowerShell pipelines mangle binary stdout.
+  $der = "$pem.der"
+  openssl pkey -in $pem -pubout -outform DER -out $der | Out-Null
+  $bytes = [IO.File]::ReadAllBytes($der)
+  Remove-Item $der -Force
   $raw = $bytes[($bytes.Length - 32)..($bytes.Length - 1)]
   $hex = "01" + (($raw | ForEach-Object { $_.ToString("x2") }) -join "")
   Write-Host ""

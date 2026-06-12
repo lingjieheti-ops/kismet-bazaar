@@ -77,6 +77,11 @@ enum Op {
         label: String,
         forge_tag: String,
     },
+    /// Native CSPR transfer between configured accounts (treasury funding).
+    Transfer {
+        to_actor: usize,
+        amount_motes: String,
+    },
     RegisterSyndicate {
         name: String,
         motto: String,
@@ -395,6 +400,17 @@ fn execute(env: &HostEnv, oracle_addr: Address, bazaar_addr: Address, op: &Op) -
                 bazaar
                     .try_list_peril(source_id.clone(), trigger_addr)
                     .map(|id| json!({"peril_id": id, "trigger": trigger_addr.to_string()})),
+            )
+        }
+        Op::Transfer {
+            to_actor,
+            amount_motes,
+        } => {
+            let to = env.get_account(*to_actor);
+            wrap(
+                "transfer",
+                env.transfer(to, motes(amount_motes))
+                    .map(|_| json!({"to_actor": to_actor, "amount_motes": amount_motes})),
             )
         }
         Op::RegisterSyndicate {

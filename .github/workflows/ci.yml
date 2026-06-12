@@ -43,6 +43,9 @@ jobs:
       - name: Tests (OdraVM)
         run: cargo odra test
 
+      - name: Native bins compile (cli, executor)
+        run: cargo check --bins
+
       - name: Build wasm
         run: cargo odra build
 
