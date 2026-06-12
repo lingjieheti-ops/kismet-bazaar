@@ -48,16 +48,31 @@ jobs:
           cargo run --bin contracts_cli -- scenario genesis
 
       - name: Extract deployment addresses
+        id: extract
         run: |
           mkdir -p deployments
-          node scripts/extract-deployments.mjs contracts/resources deployments/casper-test.json
-          cat deployments/casper-test.json
+          if node scripts/extract-deployments.mjs contracts/resources deployments/casper-test.json; then
+            cat deployments/casper-test.json
+          else
+            echo "extract_failed=true" >> "$GITHUB_OUTPUT"
+            echo "Extraction failed; raw deployment records follow for parser repair:"
+            ls -la contracts/resources/ || true
+            cat contracts/resources/*.toml || true
+          fi
 
       - name: Commit deployment record
+        # The on-chain deployment already happened and cost real testnet CSPR;
+        # commit whatever records exist even if the address parser tripped.
         run: |
           git config user.name "kismet-keeper"
           git config user.email "keeper@kismet.invalid"
-          git add deployments/ contracts/resources/ || true
-          git commit -m "deploy: KISMET stack on casper-test"
+          git add -f deployments/ contracts/resources/ || true
+          git commit -m "deploy: KISMET stack on casper-test" || echo "nothing to commit"
           git pull --rebase origin main || true
-          git push
+          git push || true
+
+      - name: Surface extraction failure
+        if: steps.extract.outputs.extract_failed == 'true'
+        run: |
+          echo "Deployment succeeded but address extraction failed; fix scripts/extract-deployments.mjs against the committed records."
+          exit 1
