@@ -108,8 +108,8 @@ jobs:
         if: steps.ready.outputs.ready == 'true'
         working-directory: contracts
         env:
-          ODRA_CASPER_LIVENET_NODE_ADDRESS: http://node.testnet.casper.network:7777
-          ODRA_CASPER_LIVENET_EVENTS_URL: http://node.testnet.casper.network:9999/events
+          ODRA_CASPER_LIVENET_NODE_ADDRESS: https://node.testnet.casper.network
+          ODRA_CASPER_LIVENET_EVENTS_URL: https://node.testnet.casper.network/events/main
           ODRA_CASPER_LIVENET_CHAIN_NAME: casper-test
           ODRA_CASPER_LIVENET_SECRET_KEY_PATH: /tmp/keys/main.pem
           ODRA_CASPER_LIVENET_KEY_1: /tmp/keys/sage.pem

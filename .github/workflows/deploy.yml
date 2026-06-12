@@ -12,19 +12,19 @@ on:
       node:
         description: "Casper RPC node base URL (client appends /rpc)"
         required: false
-        default: "https://rpc.testnet.casperlabs.io"
+        default: "https://node.testnet.casper.network"
       events:
         description: "Casper SSE events URL"
         required: false
-        default: "https://events.testnet.casperlabs.io/events"
+        default: "https://node.testnet.casper.network/events/main"
 
 concurrency:
   group: keeper
   cancel-in-progress: false
 
 env:
-  NODE_ADDRESS: ${{ inputs.node || 'https://rpc.testnet.casperlabs.io' }}
-  EVENTS_URL: ${{ inputs.events || 'https://events.testnet.casperlabs.io/events' }}
+  NODE_ADDRESS: ${{ inputs.node || 'https://node.testnet.casper.network' }}
+  EVENTS_URL: ${{ inputs.events || 'https://node.testnet.casper.network/events/main' }}
 
 permissions:
   contents: write
