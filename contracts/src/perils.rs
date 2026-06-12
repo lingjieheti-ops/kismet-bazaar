@@ -13,6 +13,9 @@
 
 use odra::prelude::*;
 
+/// Products authored by The Actuary, KISMET's contract-writing agent.
+pub mod forged;
+
 /// Interface every trigger contract must implement.
 /// The bazaar calls this across contracts via `PerilTriggerContractRef`.
 #[odra::external_contract]

@@ -1,0 +1,154 @@
+name: actuary
+
+# The Actuary forges a new insurance product: drafts the trigger predicate
+# and tests inside the guarded skeleton, survives the forbidden-pattern
+# scan, compiles, passes its own tests, faces the independent Auditor, and
+# only then opens (and merges) its pull request. Every step of authorship
+# is in this run's logs; the provenance record lands in docs/forge/.
+
+on:
+  workflow_dispatch:
+    inputs:
+      brief:
+        description: "Product brief (what should this cover pay out for?)"
+        required: true
+      source:
+        description: "Oracle source to settle against"
+        required: true
+        type: choice
+        options:
+          - istanbul-rain-24h
+          - quake-global-1h
+          - solar-kp
+          - cs2-players
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: actuary
+  cancel-in-progress: false
+
+jobs:
+  forge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: agents/package-lock.json
+
+      - name: The Actuary drafts
+        id: draft
+        working-directory: agents
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          KISMET_REPO_ROOT: ${{ github.workspace }}
+        run: |
+          npm ci
+          npm run build
+          node dist/actuary/forge.js --brief "${{ inputs.brief }}" --source "${{ inputs.source }}" | tee forge.log
+          SLUG=$(grep -oP '(?<=::set-slug::).*' forge.log)
+          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-01-01
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contracts
+
+      - name: Install cargo-odra
+        uses: taiki-e/cache-cargo-install-action@v2
+        with:
+          tool: cargo-odra@0.1.7
+
+      - name: Install wasm tools
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q wabt
+          curl -sL https://github.com/WebAssembly/binaryen/releases/download/version_130/binaryen-version_130-x86_64-linux.tar.gz | tar xz
+          echo "$PWD/binaryen-version_130/bin" >> "$GITHUB_PATH"
+
+      - name: The forged product compiles and passes its own tests
+        working-directory: contracts
+        run: |
+          cargo odra test
+          cargo odra build
+
+      - name: The Auditor reviews
+        id: audit
+        working-directory: agents
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          SLUG="${{ steps.draft.outputs.slug }}"
+          set +e
+          node dist/actuary/audit.js \
+            --module "${{ github.workspace }}/contracts/src/perils/forged/$SLUG.rs" \
+            --provenance "${{ github.workspace }}/docs/forge/$SLUG.json" | tee audit.log
+          CODE=$?
+          set -e
+          echo "verdict_code=$CODE" >> "$GITHUB_OUTPUT"
+          if [ "$CODE" = "2" ]; then exit 2; fi
+
+      - name: Open the pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SLUG="${{ steps.draft.outputs.slug }}"
+          BRANCH="forge/$SLUG"
+          git config user.name "The Actuary"
+          git config user.email "actuary@kismet.invalid"
+          git checkout -b "$BRANCH"
+          git add contracts/ docs/forge/
+          git commit -m "forge: $SLUG — authored by The Actuary" \
+            -m "Brief: ${{ inputs.brief }}" \
+            -m "Drafted, scanned, compiled, and tested in this workflow run; audited by the independent Auditor. Provenance: docs/forge/$SLUG.json"
+          git push origin "$BRANCH"
+          PR_URL=$(gh pr create \
+            --title "Forge: ${{ steps.draft.outputs.slug }} (authored by The Actuary)" \
+            --body "$(cat <<'EOF'
+          ## A new product, authored by an agent
+
+          **Brief:** ${{ inputs.brief }}
+          **Settles against:** ${{ inputs.source }}
+
+          The Actuary drafted the trigger predicate and its tests inside the
+          guarded skeleton (it cannot author imports, storage, or anything
+          that touches custody — a trigger holds no funds). The draft
+          survived the forbidden-pattern scan, compiled, and passed its own
+          tests in this same workflow run. The independent Auditor's verdict
+          and the full provenance trail (prompt/response hashes, model,
+          timestamps) are in `docs/forge/`.
+
+          Authored by machine. Verified by machine. Audited by a different machine.
+          EOF
+          )" \
+            --base main --head "$BRANCH")
+          echo "url=$PR_URL" >> "$GITHUB_OUTPUT"
+
+      - name: The Auditor votes on the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SLUG="${{ steps.draft.outputs.slug }}"
+          SUMMARY=$(node -e "const a=require('./docs/forge/$SLUG.audit.json'); console.log('**The Auditor:** '+a.summary+(a.findings.length?'\n\nFindings:\n'+a.findings.map(f=>'- '+f).join('\n'):''))")
+          if [ "${{ steps.audit.outputs.verdict_code }}" = "0" ]; then
+            gh pr review "${{ steps.pr.outputs.url }}" --approve --body "$SUMMARY"
+          else
+            gh pr review "${{ steps.pr.outputs.url }}" --request-changes --body "$SUMMARY"
+            echo "The Auditor rejected the draft; the pull request stays open for the record." >&2
+            exit 1
+          fi
+
+      - name: Merge (tests passed in this run; the Auditor approved)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr merge "${{ steps.pr.outputs.url }}" --squash --delete-branch --admin
