@@ -79,11 +79,30 @@ jobs:
         if: steps.ready.outputs.ready == 'true'
         with:
           toolchain: nightly-2026-01-01
+          targets: wasm32-unknown-unknown
 
       - uses: Swatinem/rust-cache@v2
         if: steps.ready.outputs.ready == 'true'
         with:
           workspaces: contracts
+
+      - name: Install cargo-odra
+        if: steps.ready.outputs.ready == 'true'
+        uses: taiki-e/cache-cargo-install-action@v2
+        with:
+          tool: cargo-odra@0.1.7
+
+      - name: Install wasm tools
+        if: steps.ready.outputs.ready == 'true'
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q wabt
+          curl -sL https://github.com/WebAssembly/binaryen/releases/download/version_130/binaryen-version_130-x86_64-linux.tar.gz | tar xz
+          echo "$PWD/binaryen-version_130/bin" >> "$GITHUB_PATH"
+
+      - name: Build wasm (deploy ops need the artifacts)
+        if: steps.ready.outputs.ready == 'true'
+        working-directory: contracts
+        run: cargo odra build
 
       - name: Execute on Casper Testnet
         if: steps.ready.outputs.ready == 'true'
