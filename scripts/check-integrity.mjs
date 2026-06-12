@@ -16,7 +16,7 @@ import { join, extname } from "node:path";
 const ROOT = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 
 const SKIP_DIRS = new Set([
-  ".git", "node_modules", "target", ".next", "dist", "wasm", "resources",
+  ".git", "node_modules", "target", ".next", "dist", "out", "wasm", "resources",
 ]);
 const TEXT_EXT = new Set([
   ".rs", ".ts", ".tsx", ".js", ".mjs", ".cjs", ".json", ".toml", ".yml",

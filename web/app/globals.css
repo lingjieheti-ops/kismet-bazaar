@@ -1,0 +1,613 @@
+/* KISMET — coffee-house ledger.
+   Three pigments only: ink navy, parchment, sealing-wax red (plus a muted
+   ink for marginalia and white where paper shows through). No shadows, no
+   gradients, no radii beyond the wax seal itself. Rules do the work. */
+
+:root {
+  --ink: #0e2a47;
+  --parchment: #f4eddc;
+  --wax: #8c1f28;
+  --muted: #51637a;
+  --rule: rgba(14, 42, 71, 0.9);
+  --rule-mid: rgba(14, 42, 71, 0.45);
+  --rule-faint: rgba(14, 42, 71, 0.18);
+  --wax-faint: rgba(140, 31, 40, 0.08);
+  --serif: var(--font-serif), Georgia, "Times New Roman", serif;
+  --mono: var(--font-mono), "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--parchment);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--wax);
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.wax {
+  color: var(--wax);
+}
+
+/* ---- masthead ----------------------------------------------------------- */
+
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.masthead::after {
+  content: "";
+}
+
+.mastLeft {
+  display: flex;
+  gap: 1.4rem;
+  align-items: flex-start;
+}
+
+.mastTitleBlock h1 {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 3.2rem;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.tagline {
+  font-style: italic;
+  font-size: 1.12rem;
+}
+
+.subline {
+  margin-top: 0.3rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.mastLinks {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-top: 0.4rem;
+  white-space: nowrap;
+}
+
+.mastRule {
+  border: 0;
+  border-bottom: 3px double var(--rule);
+  margin-top: 3px;
+}
+
+/* the wax seal */
+.seal {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border-radius: 50%;
+  background: var(--wax);
+  color: var(--parchment);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-6deg);
+  border: 2px solid var(--wax);
+  outline: 1px solid var(--parchment);
+  outline-offset: -6px;
+}
+
+.sealLetter {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.9rem;
+  transform: rotate(2deg);
+  user-select: none;
+}
+
+/* ---- ticker ------------------------------------------------------------- */
+
+.ticker {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.55rem 0.1rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.tickerNote {
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* ---- pre-launch band ----------------------------------------------------- */
+
+.prelaunch {
+  margin: 3.5rem auto 1rem;
+  max-width: 640px;
+  text-align: center;
+}
+
+.prelaunch h2 {
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.6rem;
+}
+
+.prelaunch p {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ---- sections ------------------------------------------------------------ */
+
+.section {
+  margin-top: 3.2rem;
+}
+
+.sectionHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  border-bottom: 3px double var(--rule);
+  padding-bottom: 0.35rem;
+  margin-bottom: 1.1rem;
+}
+
+.sectionHead h2 {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.22em;
+}
+
+.sectionNote {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.emptyLine {
+  font-style: italic;
+  color: var(--muted);
+  padding: 0.6rem 0 0.2rem;
+}
+
+/* ---- syndicate cards ------------------------------------------------------ */
+
+.synGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+  gap: 1.1rem;
+}
+
+.synCard {
+  border: 1px solid var(--rule-mid);
+  border-top: 3px double var(--rule);
+  padding: 0.9rem 1rem 1rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  background: transparent;
+}
+
+.synCard.liquidated {
+  filter: grayscale(0.85);
+  opacity: 0.78;
+}
+
+.synNo {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.synName {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.32rem;
+  line-height: 1.15;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.synMotto {
+  font-style: italic;
+  font-size: 0.92rem;
+  color: var(--muted);
+  min-height: 2.4em;
+}
+
+.synCapital {
+  font-family: var(--mono);
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.synCapital small {
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.bar {
+  height: 6px;
+  width: 100%;
+  background: var(--rule-faint);
+  display: flex;
+  overflow: hidden;
+}
+
+.barLocked {
+  background: var(--wax);
+  height: 100%;
+}
+
+.barFree {
+  background: var(--ink);
+  height: 100%;
+}
+
+.barCaption {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+}
+
+.reserveLine {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+
+.reserveThin {
+  color: var(--wax);
+  background: var(--wax-faint);
+  padding: 0 0.3rem;
+}
+
+.synLedgerLines {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  border-top: 1px solid var(--rule-faint);
+  border-bottom: 1px solid var(--rule-faint);
+  padding: 0.4rem 0;
+}
+
+.synLedgerLines div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.1rem 0;
+}
+
+.ratesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+}
+
+.ratesTable caption {
+  text-align: left;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 0.25rem;
+}
+
+.ratesTable td {
+  padding: 0.12rem 0;
+  border-bottom: 1px solid var(--rule-faint);
+}
+
+.ratesTable td:last-child {
+  text-align: right;
+}
+
+.treatyNote {
+  font-style: italic;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+/* rubber stamps */
+.stamp {
+  display: inline-block;
+  border: 3px solid var(--wax);
+  color: var(--wax);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.26em;
+  padding: 0.32rem 0.9rem 0.32rem 1.1rem;
+  transform: rotate(-8deg);
+  text-transform: uppercase;
+  border-radius: 2px;
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+.stampOverlay {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 3px solid var(--wax);
+  color: var(--wax);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.26em;
+  padding: 0.35rem 0.9rem 0.35rem 1.1rem;
+  text-transform: uppercase;
+  border-radius: 2px;
+  background: var(--parchment);
+  pointer-events: none;
+}
+
+.stampCharter {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+
+/* ---- ledger tables --------------------------------------------------------- */
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.ledger th {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0.35rem 0.7rem 0.45rem 0;
+  border-bottom: 3px double var(--rule);
+  white-space: nowrap;
+}
+
+.ledger td {
+  padding: 0.45rem 0.7rem 0.45rem 0;
+  border-bottom: 1px solid var(--rule-faint);
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.ledger td.wrap {
+  white-space: normal;
+  min-width: 14rem;
+}
+
+.statusActive {
+  letter-spacing: 0.12em;
+}
+
+.statusPaid {
+  color: var(--wax);
+  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.statusExpired {
+  color: var(--muted);
+  letter-spacing: 0.12em;
+}
+
+.statusVoided {
+  color: var(--muted);
+}
+
+.statusVoided .struck {
+  text-decoration: line-through;
+  letter-spacing: 0.12em;
+}
+
+/* ---- oracle desk ------------------------------------------------------------ */
+
+.oracleRow td {
+  vertical-align: middle;
+}
+
+.sparkline {
+  color: var(--ink);
+  display: block;
+}
+
+.provenance {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: normal;
+  word-break: break-all;
+  min-width: 12rem;
+}
+
+.refetch {
+  font-size: 0.72rem;
+}
+
+/* ---- bell events ------------------------------------------------------------- */
+
+.bellList {
+  list-style: none;
+}
+
+.bellList li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule-faint);
+}
+
+.bellGlyphs {
+  color: var(--wax);
+  display: inline-flex;
+  gap: 0.15rem;
+  flex: 0 0 auto;
+  position: relative;
+  top: 2px;
+}
+
+.bellText .mono {
+  font-size: 0.82rem;
+}
+
+.bellWhen {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---- x402 + verify ------------------------------------------------------------ */
+
+.deskProse {
+  max-width: 46rem;
+}
+
+.verifyList {
+  list-style: none;
+  counter-reset: verify;
+  max-width: 50rem;
+}
+
+.verifyList li {
+  counter-increment: verify;
+  display: flex;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule-faint);
+}
+
+.verifyList li::before {
+  content: counter(verify, upper-roman) ".";
+  font-family: var(--serif);
+  font-weight: 700;
+  flex: 0 0 2.2rem;
+}
+
+.verifyBody code {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  border: 1px solid var(--rule-mid);
+  padding: 0.1rem 0.4rem;
+  white-space: nowrap;
+}
+
+.verifyBody .mono {
+  font-size: 0.82rem;
+}
+
+/* ---- footer -------------------------------------------------------------------- */
+
+.footer {
+  margin-top: 4rem;
+  border-top: 3px double var(--rule);
+  padding-top: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* ---- small screens --------------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .masthead {
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .mastLinks {
+    text-align: left;
+    padding-top: 0;
+  }
+
+  .mastTitleBlock h1 {
+    font-size: 2.4rem;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+}
