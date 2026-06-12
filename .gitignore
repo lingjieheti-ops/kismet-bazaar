@@ -1,0 +1,22 @@
+# Rust
+contracts/target/
+contracts/wasm/*.wasm
+contracts/resources/
+
+# Node
+node_modules/
+.next/
+dist/
+*.tsbuildinfo
+
+# Env & keys — never commit key material
+.env
+.env.*
+!.env.example
+*.pem
+keys/
+
+# Local state
+keeper-state/*.tmp
+.DS_Store
+Thumbs.db

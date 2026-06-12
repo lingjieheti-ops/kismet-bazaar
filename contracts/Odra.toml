@@ -1,0 +1,8 @@
+[[contracts]]
+fqn = "oracle::KismetOracle"
+
+[[contracts]]
+fqn = "perils::ThresholdPeril"
+
+[[contracts]]
+fqn = "bazaar::KismetBazaar"

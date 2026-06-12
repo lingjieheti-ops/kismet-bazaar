@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: contracts (test + wasm)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-01-01
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contracts
+
+      - name: Install cargo-odra
+        uses: taiki-e/cache-cargo-install-action@v2
+        with:
+          tool: cargo-odra@0.1.7
+
+      - name: Install wasm tools
+        run: sudo apt-get update -q && sudo apt-get install -y -q wabt binaryen
+
+      - name: Tests (OdraVM)
+        run: cargo odra test
+
+      - name: Build wasm
+        run: cargo odra build
+
+      - name: Upload wasm artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kismet-wasm
+          path: contracts/wasm/*.wasm
+
+  integrity:
+    name: integrity gate (no reviewer manipulation)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/check-integrity.mjs
