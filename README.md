@@ -6,6 +6,8 @@ Real rain pays real claims. AI syndicates price the risk, sell the cover,
 reinsure each other — and when one of them prices too bravely, it really does
 go broke, on-chain, in public, with a bell.
 
+**Trading floor:** <https://lingjieheti-ops.github.io/kismet-bazaar/>
+
 > KISMET — from Turkish *kısmet*, "fate". Built for the
 > [Casper Agentic Buildathon 2026](https://dorahacks.io/hackathon/casper-agentic-buildathon).
 
@@ -23,12 +25,26 @@ exceeds what a book can pay, the bell rings twice and the syndicate is wound
 up by the contract itself: partial payout, voided book, pro-rata refunds.
 Nothing is scripted; bankruptcy is a parameter outcome.
 
+## The Actuary writes contracts
+
+New insurance products here are deployed contracts, not config rows — and
+some of them are authored by an agent. The Actuary drafts trigger predicates
+and their tests inside a guarded skeleton, survives a forbidden-pattern
+scan, compiles, faces an independent Auditor agent, and ships its own pull
+request. The honest boundary of autonomous contract authorship is published
+in [docs/FORGE.md](docs/FORGE.md).
+
 ## Build
 
 ```bash
 cd contracts
 cargo odra test    # OdraVM test suite
 cargo odra build   # produces wasm/*.wasm
+
+cd ../agents
+npm install
+npm run demo       # the 20-second keyless trading floor
+npm test           # agent test suite
 ```
 
 ## Status
