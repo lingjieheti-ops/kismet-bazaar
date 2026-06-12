@@ -8,6 +8,7 @@ use contracts::bazaar::{KismetBazaar, KismetBazaarInitArgs};
 use contracts::oracle::KismetOracle;
 use contracts::perils::{ThresholdPeril, ThresholdPerilInitArgs};
 use odra::host::{HostEnv, NoArgs};
+use odra::prelude::Addressable;
 use odra_cli::{
     deploy::DeployScript,
     scenario::{Args, Error, Scenario, ScenarioMetadata},

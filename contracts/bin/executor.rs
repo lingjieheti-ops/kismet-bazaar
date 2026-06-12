@@ -25,8 +25,8 @@ use contracts::bazaar::KismetBazaar;
 use contracts::oracle::KismetOracle;
 use contracts::perils::ThresholdPeril;
 use odra::casper_types::U512;
-use odra::host::{Deployer, HostEnv, HostRef};
-use odra::Address;
+use odra::host::{Deployer, HostEnv, HostRef, HostRefLoader};
+use odra::prelude::{Address, Addressable, OdraError};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
@@ -475,7 +475,7 @@ fn execute(env: &HostEnv, oracle_addr: Address, bazaar_addr: Address, op: &Op) -
     }
 }
 
-fn wrap(op: &str, result: Result<Value, odra::OdraError>) -> Value {
+fn wrap(op: &str, result: Result<Value, OdraError>) -> Value {
     match result {
         Ok(mut v) => {
             v["op"] = json!(op);
