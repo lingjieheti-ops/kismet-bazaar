@@ -8,10 +8,23 @@ name: deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      node:
+        description: "Casper RPC node base URL (client appends /rpc)"
+        required: false
+        default: "https://rpc.testnet.casperlabs.io"
+      events:
+        description: "Casper SSE events URL"
+        required: false
+        default: "https://events.testnet.casperlabs.io/events"
 
 concurrency:
   group: keeper
   cancel-in-progress: false
+
+env:
+  NODE_ADDRESS: ${{ inputs.node || 'https://rpc.testnet.casperlabs.io' }}
+  EVENTS_URL: ${{ inputs.events || 'https://events.testnet.casperlabs.io/events' }}
 
 permissions:
   contents: write
@@ -52,11 +65,24 @@ jobs:
         working-directory: contracts
         run: cargo odra build
 
+      - name: Node preflight (what can this runner actually reach?)
+        run: |
+          echo "--- RPC: $NODE_ADDRESS/rpc"
+          curl -sS -m 15 -X POST "$NODE_ADDRESS/rpc" \
+            -H 'Content-Type: application/json' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"info_get_status"}' | head -c 500 || echo " (RPC unreachable)"
+          echo ""
+          echo "--- Events: $EVENTS_URL"
+          curl -sS -m 8 -N "$EVENTS_URL" | head -c 300 || echo " (events endpoint closed/streamed out — acceptable)"
+          echo ""
+          echo "--- Alternates, for the record:"
+          curl -sS -m 10 -X POST "http://node.testnet.casper.network:7777/rpc" -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"info_get_status"}' | head -c 200 || echo "node.testnet.casper.network:7777 unreachable"
+
       - name: Deploy stack + genesis
         working-directory: contracts
         env:
-          ODRA_CASPER_LIVENET_NODE_ADDRESS: http://node.testnet.casper.network:7777
-          ODRA_CASPER_LIVENET_EVENTS_URL: http://node.testnet.casper.network:9999/events
+          ODRA_CASPER_LIVENET_NODE_ADDRESS: ${{ inputs.node || 'https://rpc.testnet.casperlabs.io' }}
+          ODRA_CASPER_LIVENET_EVENTS_URL: ${{ inputs.events || 'https://events.testnet.casperlabs.io/events' }}
           ODRA_CASPER_LIVENET_CHAIN_NAME: casper-test
           ODRA_CASPER_LIVENET_SECRET_KEY_PATH: /tmp/keys/main.pem
           CSPR_CLOUD_AUTH_TOKEN: ${{ secrets.CSPR_CLOUD_AUTH_TOKEN }}
