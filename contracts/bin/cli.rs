@@ -1,8 +1,8 @@
 //! KISMET livenet CLI — deploys the bazaar stack to Casper and runs genesis.
 //!
 //! Usage (requires livenet env vars, see README):
-//!   cargo run --bin contracts_cli --features=livenet -- deploy
-//!   cargo run --bin contracts_cli --features=livenet -- scenario genesis
+//!   cargo run --bin contracts_cli -- deploy
+//!   cargo run --bin contracts_cli -- scenario genesis
 
 use contracts::bazaar::{KismetBazaar, KismetBazaarInitArgs};
 use contracts::oracle::KismetOracle;
@@ -49,7 +49,7 @@ impl DeployScript for KismetDeployScript {
         let _bazaar = KismetBazaar::load_or_deploy(
             env,
             KismetBazaarInitArgs {
-                oracle: *oracle.address(),
+                oracle: oracle.address(),
             },
             container,
             DEPLOY_GAS,
@@ -87,7 +87,7 @@ impl Scenario for GenesisScenario {
         )?;
 
         env.set_gas(CALL_GAS);
-        bazaar.try_list_peril(GENESIS_SOURCE_ID.to_string(), *trigger.address())?;
+        bazaar.try_list_peril(GENESIS_SOURCE_ID.to_string(), trigger.address())?;
 
         Ok(())
     }

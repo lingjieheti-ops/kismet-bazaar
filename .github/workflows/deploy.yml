@@ -1,0 +1,63 @@
+name: deploy
+
+# One-shot Testnet deployment, run by hand. Deploys the oracle, the genesis
+# Istanbul-rain trigger, and the bazaar; runs the genesis scenario (register
+# rain source + list peril 0); writes deployments/casper-test.json and
+# commits it. After this, run the keeper workflow once with
+# keeper-state/bootstrap-commands.json to open the syndicates.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: keeper
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Materialize deployer key
+        run: |
+          mkdir -p /tmp/keys
+          printf '%s' "${{ secrets.CASPER_KEY_MAIN }}" > /tmp/keys/main.pem
+          chmod 600 /tmp/keys/main.pem
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-01-01
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contracts
+
+      - name: Deploy stack + genesis
+        working-directory: contracts
+        env:
+          ODRA_CASPER_LIVENET_NODE_ADDRESS: https://node.testnet.cspr.cloud
+          ODRA_CASPER_LIVENET_CHAIN_NAME: casper-test
+          ODRA_CASPER_LIVENET_SECRET_KEY_PATH: /tmp/keys/main.pem
+          CSPR_CLOUD_AUTH_TOKEN: ${{ secrets.CSPR_CLOUD_AUTH_TOKEN }}
+        run: |
+          cargo run --bin contracts_cli -- deploy
+          cargo run --bin contracts_cli -- scenario genesis
+
+      - name: Extract deployment addresses
+        run: |
+          mkdir -p deployments
+          node scripts/extract-deployments.mjs contracts/resources deployments/casper-test.json
+          cat deployments/casper-test.json
+
+      - name: Commit deployment record
+        run: |
+          git config user.name "kismet-keeper"
+          git config user.email "keeper@kismet.invalid"
+          git add deployments/ contracts/resources/ || true
+          git commit -m "deploy: KISMET stack on casper-test"
+          git pull --rebase origin main || true
+          git push

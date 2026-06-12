@@ -824,10 +824,10 @@ mod tests {
         let mut bazaar = KismetBazaar::deploy(
             &env,
             KismetBazaarInitArgs {
-                oracle: *oracle.address(),
+                oracle: oracle.address(),
             },
         );
-        let peril_id = bazaar.list_peril("istanbul-rain-24h".to_string(), *trigger.address());
+        let peril_id = bazaar.list_peril("istanbul-rain-24h".to_string(), trigger.address());
         World {
             env,
             oracle,

@@ -1,0 +1,120 @@
+name: keeper
+
+# The floor never sleeps. Every cycle: agents look at the world and the
+# books (decide), then their intents are executed on Casper with their own
+# keys (execute), then the fresh chain snapshot is committed back so the
+# web ledger and the next cycle see the truth.
+#
+# GH Actions cron is best-effort — cycles may be late, never wrong:
+# every operation here is idempotent or revert-tolerant.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      commands_file:
+        description: "Optional commands file to execute instead of a decide cycle (e.g. keeper-state/bootstrap-commands.json)"
+        required: false
+        default: ""
+
+concurrency:
+  group: keeper
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check deployment readiness
+        id: ready
+        run: |
+          if [ ! -f deployments/casper-test.json ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "No deployment yet — keeper sleeps."
+          elif [ -z "${{ secrets.CASPER_KEY_MAIN }}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "No keys in secrets — keeper sleeps."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Materialize agent keys
+        if: steps.ready.outputs.ready == 'true'
+        run: |
+          mkdir -p /tmp/keys
+          printf '%s' "${{ secrets.CASPER_KEY_MAIN }}" > /tmp/keys/main.pem
+          printf '%s' "${{ secrets.CASPER_KEY_SAGE }}" > /tmp/keys/sage.pem
+          printf '%s' "${{ secrets.CASPER_KEY_CAVALIER }}" > /tmp/keys/cavalier.pem
+          printf '%s' "${{ secrets.CASPER_KEY_MERIDIAN }}" > /tmp/keys/meridian.pem
+          printf '%s' "${{ secrets.CASPER_KEY_ATLAS }}" > /tmp/keys/atlas.pem
+          printf '%s' "${{ secrets.CASPER_KEY_PATRON }}" > /tmp/keys/patron.pem
+          chmod 600 /tmp/keys/*.pem
+
+      - uses: actions/setup-node@v4
+        if: steps.ready.outputs.ready == 'true'
+        with:
+          node-version: 22
+
+      - name: Decide (agents)
+        if: steps.ready.outputs.ready == 'true' && inputs.commands_file == ''
+        working-directory: agents
+        env:
+          KEEPER_STATE_DIR: ${{ github.workspace }}/keeper-state
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npm ci
+          npm run decide
+
+      - name: Use provided commands file
+        if: steps.ready.outputs.ready == 'true' && inputs.commands_file != ''
+        run: cp "${{ inputs.commands_file }}" keeper-state/commands.json
+
+      - uses: dtolnay/rust-toolchain@master
+        if: steps.ready.outputs.ready == 'true'
+        with:
+          toolchain: nightly-2026-01-01
+
+      - uses: Swatinem/rust-cache@v2
+        if: steps.ready.outputs.ready == 'true'
+        with:
+          workspaces: contracts
+
+      - name: Execute on Casper Testnet
+        if: steps.ready.outputs.ready == 'true'
+        working-directory: contracts
+        env:
+          ODRA_CASPER_LIVENET_NODE_ADDRESS: https://node.testnet.cspr.cloud
+          ODRA_CASPER_LIVENET_CHAIN_NAME: casper-test
+          ODRA_CASPER_LIVENET_SECRET_KEY_PATH: /tmp/keys/main.pem
+          ODRA_CASPER_LIVENET_KEY_1: /tmp/keys/sage.pem
+          ODRA_CASPER_LIVENET_KEY_2: /tmp/keys/cavalier.pem
+          ODRA_CASPER_LIVENET_KEY_3: /tmp/keys/meridian.pem
+          ODRA_CASPER_LIVENET_KEY_4: /tmp/keys/atlas.pem
+          ODRA_CASPER_LIVENET_KEY_5: /tmp/keys/patron.pem
+          CSPR_CLOUD_AUTH_TOKEN: ${{ secrets.CSPR_CLOUD_AUTH_TOKEN }}
+        run: |
+          cargo run --bin contracts_executor -- \
+            --deployments ../deployments/casper-test.json \
+            --commands ../keeper-state/commands.json \
+            --receipts ../keeper-state/receipts.json \
+            --snapshot ../keeper-state/snapshot.json
+
+      - name: Commit state
+        if: steps.ready.outputs.ready == 'true'
+        run: |
+          git config user.name "kismet-keeper"
+          git config user.email "keeper@kismet.invalid"
+          git add keeper-state/
+          if git diff --cached --quiet; then
+            echo "No state change this cycle."
+          else
+            git commit -m "keeper: cycle $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull --rebase origin main || true
+            git push || echo "Push raced another run; next cycle wins."
+          fi

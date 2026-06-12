@@ -1,0 +1,20 @@
+{
+  "commands": [
+    { "actor": 0, "op": "register_source", "source_id": "quake-global-1h", "description": "Strongest earthquake worldwide in the past hour, magnitude x100", "upstream_url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson", "scale_note": "magnitude x100; 0 = quiet hour" },
+    { "actor": 0, "op": "register_source", "source_id": "solar-kp", "description": "Planetary K-index (geomagnetic storm scale), Kp x10", "upstream_url": "https://services.swpc.noaa.gov/json/planetary_k_index_1m.json", "scale_note": "Kp x10" },
+    { "actor": 0, "op": "register_source", "source_id": "cs2-players", "description": "Counter-Strike 2 concurrent players on Steam", "upstream_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=730", "scale_note": "players x1" },
+    { "actor": 0, "op": "create_threshold_peril", "source_id": "quake-global-1h", "gte": true, "threshold": 550, "label": "Earthquake M >= 5.5 worldwide (hourly window)", "forge_tag": "template-forged" },
+    { "actor": 0, "op": "create_threshold_peril", "source_id": "solar-kp", "gte": true, "threshold": 50, "label": "Geomagnetic storm Kp >= 5.0", "forge_tag": "template-forged" },
+    { "actor": 0, "op": "create_threshold_peril", "source_id": "quake-global-1h", "gte": true, "threshold": 450, "label": "Earthquake M >= 4.5 worldwide (demo calibration peril)", "forge_tag": "template-forged" },
+    { "actor": 1, "op": "register_syndicate", "name": "Sage Mutual", "motto": "We have seen storms before.", "reserve_bps": 10000 },
+    { "actor": 2, "op": "register_syndicate", "name": "Cavalier Syndicate", "motto": "Risk is just yield wearing a mask.", "reserve_bps": 3000 },
+    { "actor": 3, "op": "register_syndicate", "name": "Meridian Re", "motto": "Everyone needs a backstop.", "reserve_bps": 10000 },
+    { "actor": 4, "op": "register_syndicate", "name": "Atlas Parametric", "motto": "The model is the message.", "reserve_bps": 8000 },
+    { "actor": 1, "op": "deposit_capital", "syndicate_id": 0, "amount_motes": "220000000000" },
+    { "actor": 2, "op": "deposit_capital", "syndicate_id": 1, "amount_motes": "120000000000" },
+    { "actor": 3, "op": "deposit_capital", "syndicate_id": 2, "amount_motes": "260000000000" },
+    { "actor": 4, "op": "deposit_capital", "syndicate_id": 3, "amount_motes": "180000000000" },
+    { "actor": 2, "op": "propose_treaty", "cedent_id": 1, "reinsurer_id": 2, "share_bps": 3000 },
+    { "actor": 3, "op": "accept_treaty", "cedent_id": 1, "reinsurer_id": 2 }
+  ]
+}

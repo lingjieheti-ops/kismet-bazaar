@@ -15,6 +15,9 @@ odra-build = { version = "2.8.0", features = [], default-features = false }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 odra-build = { version = "2.8.0", features = [], default-features = false }
 odra-cli = { version = "2.8.0", features = [], default-features = false }
+odra-casper-livenet-env = { version = "2.8.1" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
 
 [[bin]]
 name = "contracts_build_contract"
@@ -29,6 +32,11 @@ test = false
 [[bin]]
 name = "contracts_cli"
 path = "bin/cli.rs"
+test = false
+
+[[bin]]
+name = "contracts_executor"
+path = "bin/executor.rs"
 test = false
 
 [profile.release]

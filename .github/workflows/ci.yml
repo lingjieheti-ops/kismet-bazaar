@@ -47,6 +47,27 @@ jobs:
           name: kismet-wasm
           path: contracts/wasm/*.wasm
 
+  agents:
+    name: agents (typecheck + test + demo)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agents
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: agents/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+        env:
+          KISMET_RETRY_DELAY_MS: "0"
+      - name: Keyless demo (the 20-second floor)
+        run: npm run demo
+
   integrity:
     name: integrity gate (no reviewer manipulation)
     runs-on: ubuntu-latest
